@@ -1,0 +1,7 @@
+# system
+.idea
+node_modules/
+*.log
+
+# project
+dist/
