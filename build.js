@@ -12,6 +12,7 @@ void new Generator({
 // @see https://janessagarrow.com/blog/typescript-and-esbuild/
 const sharedConfig = {
   entryPoints: [entry],
+  platform: 'node',
   bundle: true,
   minify: true,
   external: Object
@@ -21,13 +22,11 @@ const sharedConfig = {
 
 void build({
   ...sharedConfig,
-  platform: 'node', // for CJS
   outfile: 'dist/index.js',
 })
 
 void build({
   ...sharedConfig,
   outfile: 'dist/index.esm.js',
-  platform: 'neutral', // for ESM
   format: 'esm',
 })

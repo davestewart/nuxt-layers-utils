@@ -17,6 +17,9 @@
   "dependencies": {
     "pathe": "^1.1.2"
   },
+  "peerDependencies": {
+    "nuxt": "^3.0.0"
+  },
   "devDependencies": {
     "@types/node": "^20.12.11",
     "esbuild": "^0.21.1",

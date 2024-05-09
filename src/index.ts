@@ -4,7 +4,7 @@ import { join } from 'pathe'
 /**
  * Helper function to debug generated config
  */
-export function debug (config: any) {
+export function debug<T> (config: T): T {
   console.log(inspect(config, { depth: 20, colors: true }))
   return config
 }
