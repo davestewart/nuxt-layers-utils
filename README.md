@@ -31,6 +31,17 @@ See my article on Nuxt Layers for more information:
 
 - [davestewart.co.uk/blog/nuxt-layers](https://davestewart.co.uk/blog/nuxt-layers)
 
+### Overview
+
+The package provides a `useLayers()` factory which:
+
+- takes an absolute folder path
+- takes a layer config object
+- provides a set of methods to generate path config
+- provides additional utility and helper functions
+
+You configure and call it once, then call methods on it to generate config.
+
 ### Simple example
 
 A simple example with:
@@ -236,13 +247,6 @@ export default {
 ```
 
 ## API
-
-Nuxt Layers Utils is basically a factory which:
-
-- takes an absolute folder path
-- takes a layer config object
-- provides a set of methods to generate path config
-- provides additional utility and helper functions
 
 Factory function:
 
