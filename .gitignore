@@ -5,3 +5,4 @@ node_modules/
 
 # project
 dist/
+tests/coverage/
