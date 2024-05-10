@@ -6,7 +6,7 @@
 
 [Nuxt Layers](https://nuxt.com/docs/guide/going-further/layers) are great to modularise your applications, but they can be fiddly, verbose and repetitive to configure when you have many layers, reconfigured folders, aliases, nested component folders, auto-imports, etc.
 
-Nuxt Layers Utils provides a [common interface](#api) to generate these disparate configuration options – hopefully saving you from shouting at your laptop because you misconfigured some path setting 🤬.
+Nuxt Layers Utils provides a [common interface](#api) to generate these disparate configuration options – hopefully saving you from shouting at your laptop because you misconfigured some path setting.
 
 ## Usage
 
@@ -23,9 +23,9 @@ npm i --save-dev nuxt-layers-utils
 > [!IMPORTANT]
 > Read this before designing your layers
 
-Nuxt's [path-oriented configuration settings](#nuxt-config) take a variety of formats: [absolute](https://nuxt.com/docs/api/nuxt-config#alias), [relative](https://nuxt.com/docs/api/nuxt-config#dir), [folder names](https://nuxt.com/docs/api/nuxt-config#extends), [root-relative](https://nuxt.com/docs/api/nuxt-config#srcdir), [layer-relative](https://nuxt.com/docs/api/nuxt-config#extends), [aliased](https://nuxt.com/docs/api/nuxt-config#components), etc, etc. Additionally, not all config options behave consistently ([or work](https://nuxt.com/docs/api/nuxt-config#imports)) when configured in [layer config](https://nuxt.com/docs/guide/going-further/layers) files.
+Nuxt's [path-oriented configuration settings](#nuxt-config) take a variety of formats: [absolute](https://nuxt.com/docs/api/nuxt-config#alias), [relative](https://nuxt.com/docs/api/nuxt-config#dir), [folder names](https://nuxt.com/docs/api/nuxt-config#extends), [root-relative](https://nuxt.com/docs/api/nuxt-config#srcdir), [layer-relative](https://nuxt.com/docs/api/nuxt-config#extends), [aliased](https://nuxt.com/docs/api/nuxt-config#components), etc, etc, and it's not always clear which should be used when. Additionally, not all settings [work as expected](https://nuxt.com/docs/api/nuxt-config#imports) when configured in [layer config](https://nuxt.com/docs/guide/going-further/layers) files.
 
-As such (_and_ because it's tricky to chase down path-related config across multiple folders) I **strongly recommend** to configure everything path-related in your project's **main** `nuxt.config.ts`.
+And because it's tricky to chase down path-related config across multiple folders, I **strongly recommend** to configure everything *path-related* in your project's **main** `nuxt.config.ts`.
 
 See my article on Nuxt Layers for more information:
 
