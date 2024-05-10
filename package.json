@@ -1,18 +1,20 @@
 {
   "name": "nuxt-layers-utils",
   "description": "A collection of utilities to work with Nuxt layers",
-  "version": "0.1.0",
-  "homepage": "https://github.com/davestewart/nuxt-layers-utils#readme",
+  "version": "0.2.0",
   "author": "Dave Stewart",
   "files": [
     "dist/*"
   ],
-  "module": "dist/index.esm.js",
+  "type": "module",
   "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "node build.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsup src/index.ts --ignore-watch src/**/*.spec.ts --format esm --dts && tsc --emitDeclarationOnly",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint . --ext .ts",
+    "release": "npm run test && npm run build"
   },
   "dependencies": {
     "pathe": "^1.1.2"
@@ -21,10 +23,14 @@
     "nuxt": "^3.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.12.11",
-    "esbuild": "^0.21.1",
-    "npm-dts": "^1.3.12",
-    "typescript": "^5.4.5"
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "@typescript-eslint/parser": "^7.8.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
   },
   "repository": {
     "type": "git",
