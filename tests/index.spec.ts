@@ -2,29 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { useLayers } from '../src'
 
 // variables
-const mainDir = '/projects/project'
-const layers = useLayers(mainDir, {
+const baseDir = '/projects/project'
+const layers = useLayers(baseDir, {
   core: 'core',
   blog: 'layers/blog',
   site: 'layers/site',
 })
 
-describe('useLayers', () => {
-  describe('getPath', () => {
-    it('should return the correct path for a layer', () => {
-      expect(layers.path('core')).toBe('/projects/project/core')
-    })
-
-    it('should return the correct path for a layer and folder', () => {
-      expect(layers.path('blog', 'assets')).toBe('/projects/project/layers/blog/assets')
-    })
-
-    it('throws an error for invalid layer keys', () => {
-      expect(() => layers.path('invalid')).toThrow('Invalid layer "invalid"')
-    })
-  })
-
-  describe('getExtends', () => {
+describe('api', () => {
+  describe('extends', () => {
     it('should return all layer folders', () => {
       expect(layers.extends()).toEqual([
         'core',
@@ -34,7 +20,7 @@ describe('useLayers', () => {
     })
   })
 
-  describe('getDir', () => {
+  describe('dir', () => {
     it('should return the directory mapping for specified folders', () => {
       const result = layers.dir('blog', ['assets', 'plugins'])
       expect(result).toEqual({
@@ -44,13 +30,13 @@ describe('useLayers', () => {
     })
   })
 
-  describe('getDirPath', () => {
+  describe('dirPath', () => {
     it('should return the directory path for a given folder', () => {
       expect(layers.dirPath('site', 'assets')).toBe('layers/site/assets')
     })
   })
 
-  describe('getImportsDirs', () => {
+  describe('importsDirs', () => {
     it('should generate import paths for default directories', () => {
       const result = layers.importsDirs()
       expect(result).toEqual([
@@ -67,7 +53,7 @@ describe('useLayers', () => {
     })
   })
 
-  describe('getComponents', () => {
+  describe('components', () => {
     it('should return component paths with defaults', () => {
       const result = layers.components()
       expect(result).toEqual([
@@ -87,7 +73,7 @@ describe('useLayers', () => {
     })
   })
 
-  describe('getAlias', () => {
+  describe('alias', () => {
     it('should return aliases for layers when no options are passed', () => {
       const result = layers.alias('#')
       expect(result).toEqual({
@@ -114,19 +100,57 @@ describe('useLayers', () => {
     })
   })
 
-  describe('getViteResolveAlias', () => {
+  describe('viteResolveAlias', () => {
     it('should convert aliases to Vite resolve format', () => {
       const aliases = { '#core': '/projects/project/core' }
       const result = layers.viteResolveAlias(aliases)
       expect(result).toEqual([{ find: '#core', replacement: '/projects/project/core' }])
     })
   })
+})
+
+describe('utilities', () => {
+  describe('abs', () => {
+    it('should return the correct absolute path for a layer', () => {
+      expect(layers.abs('core')).toBe('/projects/project/core')
+    })
+
+    it('should return the correct absolute path for a layer and folder', () => {
+      expect(layers.abs('blog', 'assets')).toBe('/projects/project/layers/blog/assets')
+    })
+
+    it('throws an error for invalid layer keys', () => {
+      expect(() => layers.abs('invalid')).toThrow('Invalid layer "invalid"')
+    })
+  })
+
+  describe('rel', () => {
+    it('should return the correct relative path for a layer', () => {
+      expect(layers.rel('core')).toBe('core')
+    })
+
+    it('should return the correct relative path for a layer and folder', () => {
+      expect(layers.rel('blog', 'assets')).toBe('layers/blog/assets')
+    })
+
+    it('throws an error for invalid layer keys', () => {
+      expect(() => layers.rel('invalid')).toThrow('Invalid layer "invalid"')
+    })
+  })
 
   describe('only', () => {
-    it('should filter and return only the specified layers', () => {
+    it('should filter specified layers when passing a string', () => {
       const newLayers = layers.only('core')
       expect(newLayers.extends()).toEqual([
         'core',
+      ])
+    })
+
+    it('should filter specified layers when passing an array', () => {
+      const newLayers = layers.only(['core', 'blog'])
+      expect(newLayers.extends()).toEqual([
+        'core',
+        'layers/blog',
       ])
     })
   })
