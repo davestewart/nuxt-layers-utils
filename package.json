@@ -11,7 +11,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup src/index.ts --ignore-watch src/**/*.spec.ts --format esm --dts && tsc --emitDeclarationOnly",
-    "test": "vitest",
+    "test": "vitest --reporter=verbose",
     "test:coverage": "vitest --coverage",
     "lint": "eslint . --ext .ts",
     "release": "vitest run && npm run build"

@@ -115,7 +115,6 @@ const alias = {
 
   // third party
   '~/libs': resolve('../../libs'),
-  '#basicscroll': 'basicscroll',
 }
 
 // build the final config 
@@ -238,14 +237,12 @@ export default {
 
 ## API
 
-### Intro
-
-Nuxt Layer Utils is basically a factory which:
+Nuxt Layers Utils is basically a factory which:
 
 - takes an absolute folder path
 - takes a layer config object
 - provides a set of methods to generate path config
-- provides some additional utility functions
+- provides additional utility and helper functions
 
 Factory function:
 
@@ -253,19 +250,23 @@ Factory function:
 
 Config methods _(named after the config they provide)_:
 
-- [layers.extends()](#getextends)
-- [layers.dir()](#getdir)
-- [layers.dirPath()](#getdirpath)
-- [layers.importsDirs()](#getimportsdirs)
-- [layers.components()](#getcomponents)
-- [layers.alias()](#getalias)
-- [layers.viteResolveAlias()](#getviteresolvealias)
+- [layers.extends()](#extends)
+- [layers.dir()](#dir)
+- [layers.dirPath()](#dirpath)
+- [layers.importsDirs()](#importsdirs)
+- [layers.components()](#components)
+- [layers.alias()](#alias)
+- [layers.viteResolveAlias()](#viteresolvealias)
 
 Utilities:
 
 - [layers.rel()](#rel)
 - [layers.abs()](#abs)
 - [layers.only()](#only)
+
+Helpers:
+
+- [logConfig()](#logconfig)
 
 ### `useLayers()`
 
@@ -634,6 +635,76 @@ const alias = {
     '~/components' : '/Volumes/Projects/some-project/layers/site/components',
     '~/composables' : '/Volumes/Projects/some-project/layers/site/composables',
     '~/utils' : '/Volumes/Projects/some-project/layers/site/utils',
+  }
+}
+```
+
+## Helpers
+
+### `logConfig()`
+
+Dump the full, expanded and colorized content of your Nuxt config to the console.
+
+**Params:**
+
+```
+@param config       A Nuxt configuration object
+```
+
+**Example:**
+
+```ts
+import { logConfig } from 'nuxt-layers-utils'
+
+export default logConfig(defineNuxtConfig({
+  extends: ...,
+  dir: ...,
+  imports: ...,
+  alias: ...,
+  vite: ...,
+}))
+```
+
+**Result:**
+
+```js
+{
+  extends: [
+    'core',
+    'layers/auth',
+    ...
+  ],
+  dir: {
+    middleware: 'core/middleware',
+    modules: 'core/modules',
+    ...
+  },
+  imports: {
+    dirs: [
+      'core/config',
+      'core/state',
+      '...
+    ]
+  },
+  alias: {
+    '#core': '/Volumes/Projects/some-project/core',
+    '#auth': '/Volumes/Projects/some-project/layers/auth',
+    ...
+  },
+  vite: {
+    resolve: {
+      alias: [
+        {
+          find: '#core',
+          replacement: '/Volumes/Projects/some-project/core'
+        },
+        {
+          find: '#auth',
+          replacement: '/Volumes/Projects/some-project/layers/auth'
+        },
+        ...
+      ]
+    }
   }
 }
 ```
