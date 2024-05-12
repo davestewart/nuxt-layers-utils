@@ -58,9 +58,19 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
 
   return {
     /**
+     * Get the original layers config
+     * @returns               A hash of key:relative path pairs
+     */
+    get layers () {
+      return layers
+    },
+
+    /**
      * Generate `config.extends` layer folders array
      *
      * @see https://nuxt.com/docs/api/nuxt-config#extends
+     *
+     * @returns               An array of relative paths
      */
     extends () {
       return Object.values(layers)
@@ -73,6 +83,7 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      *
      * @param     key         A valid layer key, i.e. 'core'
      * @param     folders     An array of valid config.dir folder keys
+     * @returns               A hash of key:relative path pairs
      */
     dir (key: keyof typeof layers, folders: NuxtDir[]) {
       assertLayerKey(key)
@@ -89,6 +100,7 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      *
      * @param     key         A valid layer key, i.e. 'core'
      * @param     folder      A valid config.dir folder, i.e. 'assets'
+     * @returns               A relative path
      */
     dirPath (key: keyof typeof layers, folder?: NuxtDir) {
       assertLayerKey(key)
@@ -100,17 +112,15 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      *
      * @see https://nuxt.com/docs/api/nuxt-config#imports
      *
-     * @param     folders   An optional list of folders
+     * @param     folders     An optional list of folders
+     * @returns               An array of relative paths
      */
     importsDirs (folders = AUTO_IMPORTS) {
-      return Object
-        .values(layers)
-        .map((dir: string) => {
-          return folders.map((folder: string) => {
-            return join(dir, folder)
-          })
+      return this.arr((key, rel) => {
+        return folders.map((folder: string) => {
+          return join(rel, folder)
         })
-        .flat()
+      }).flat()
     },
 
     /**
@@ -122,17 +132,18 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      * @param     options
      * @param     options.pathPrefix    Optional Boolean to prefix the component name with path, defaults to true
      * @param     options.prefix        Optional String to prefix the component name with
+     * @returns                         An array of component config options
      */
     components (options: { pathPrefix?: boolean, prefix?: string } = {}) {
       const hasOptions = Object.values(options).length > 0
-      return Object
-        .values(layers)
-        .map((dir: string) => {
-          const path = `~/${dir}/components`
-          return hasOptions
-            ? { path, ...options }
-            : path
-        })
+      return this.arr((key, rel) => {
+        const path = `~/${rel}/components`
+        return hasOptions
+          ? { path, ...options }
+          : path
+      })
+    },
+
     /**
      * Generate `content.sources` hash
      *
@@ -169,7 +180,7 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      *
      * @param     prefix      A required alias prefix
      * @param     folders     An optional
-     * @returns   A hash of { key: path } pairs
+     * @returns               A hash of key:absolute path pairs
      */
     alias (prefix: string = '#', folders?: string[] | true): Layers {
       const output: Record<string, string> = {}
@@ -197,6 +208,7 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      * @see https://nuxt.com/docs/api/nuxt-config#resolve
      *
      * @param     aliases     The same alias hash used in `config.alias`
+     * @returns               An array of find:replace pairs
      */
     viteResolveAlias (aliases: Record<string, string>) {
       return Object
@@ -232,6 +244,7 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      *
      * @param     key         A valid layer key, i.e. 'core'
      * @param     folder      A valid config.dir folder, i.e. 'assets'
+     * @returns               A relative path
      */
     rel (key: keyof typeof layers, folder = '') {
       assertLayerKey(key)
@@ -243,6 +256,7 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      *
      * @param     key         A valid layer key, i.e. 'core'
      * @param     folder      A valid `config.dir` folder, i.e. 'assets'
+     * @returns               An absolute path
      */
     abs (key: keyof typeof layers, folder = '') {
       assertLayerKey(key)
