@@ -1,6 +1,12 @@
+
+
 # Nuxt Layers Utils
 
 > A collection of utilities to work with Nuxt layers
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/davestewart/nuxt-layers-utils/main/splash.png" alt="Nuxt Layers Utils logo">
+</p>
 
 ## Abstract
 
@@ -35,12 +41,12 @@ See my article on Nuxt Layers for more information:
 
 The package provides a `useLayers()` factory which:
 
-- takes an absolute folder path
-- takes a layer config object
-- provides a set of methods to generate path config
-- provides additional utility and helper functions
+- takes an absolute `baseDir` path
+- takes a `layers` config object
+- provides a set of named config methods, i.e. `alias()`, `dir()`
+- provides additional utility and helper functions, i.e. `only()`, `rel()`, `obj()`
 
-You configure and call it once, then call methods on it to generate config.
+You create a `layers` helper, then sprinkle generated config into your main `nuxt.config.ts` as required.
 
 ### Simple example
 
@@ -252,25 +258,33 @@ Factory function:
 
 - [useLayers()](#uselayers)
 
-Config methods _(named after the config they provide)_:
+Config methods:
+
+> Named after the config they provide, and listed in most-useful order
 
 - [layers.extends()](#extends)
+- [layers.alias()](#alias)
 - [layers.dir()](#dir)
 - [layers.dirPath()](#dirpath)
 - [layers.importsDirs()](#importsdirs)
 - [layers.components()](#components)
-- [layers.alias()](#alias)
+- [layers.contentSources()](#contentsources)
 - [layers.viteResolveAlias()](#viteresolvealias)
 
 Utilities:
 
+- [layers.only()](#only)
 - [layers.rel()](#rel)
 - [layers.abs()](#abs)
-- [layers.only()](#only)
+- [layers.obj()](#obj)
+- [layers.arr()](#arr)
+- [layers.layers](#layers)
 
 Helpers:
 
 - [logConfig()](#logconfig)
+
+See the `tests` folder for working code examples.
 
 ### `useLayers()`
 
@@ -294,7 +308,7 @@ const layers = useLayers(__dirname, {
 })
 
 export default defineNuxtConfig({
-  alias: layers.alias(),
+  extends: layers.extends(),
   ...
 })
 ```
@@ -322,6 +336,59 @@ Generates the array of relative folder paths which Nuxt should treat as layers
     'layers/blog',
     'layers/site'
   ]
+}
+```
+
+### `alias()`
+
+> Used with [`config.alias`](https://nuxt.com/docs/api/nuxt-config#alias)
+
+Generates path aliases for both named layers and arbitrary folders.
+
+**Params:**
+
+```
+ @param prefix      The required alias prefix
+ @param folders     An optional set of folder paths, defaults to layers config
+```
+
+**Example 1;** generate default layer aliases:
+
+```ts
+{
+  alias: layers.alias('#')
+}
+```
+
+**Result:**
+
+```js
+{
+  alias: {
+    '#core': '/Volumes/Projects/some-project/core',
+    '#blog': '/Volumes/Projects/some-project/layers/blog',
+    '#site': '/Volumes/Projects/some-project/layers/site',
+  }
+}
+```
+
+**Example 2;** generate custom aliases:
+
+```ts
+{
+  alias: layers.alias('~/', [
+    'foo/components',
+  ])
+}
+```
+
+**Result:**
+
+```js
+{
+  alias: {
+    '~/foo/components': '/Volumes/Projects/some-project/foo/components',
+  }
 }
 ```
 
@@ -432,21 +499,29 @@ Determines which folders should be auto-imported by Nuxt.
 
 Used with [`config.components`](https://nuxt.com/docs/api/nuxt-config#components)
 
-Determines additional component registration. See the [docs](https://nuxt.com/docs/guide/directory-structure/components#custom-directories) for more info on the method parameters.
+Override default [component naming](https://nuxt.com/docs/guide/directory-structure/components#custom-directories) and registration, to prevent path-prefixing for components.
+
+Note that Nuxt registers layers' component folders by default, using the default of path-prefixing sub-folder components, with the following effective config:
+
+```js
+{ pathPrefix: true, global: false, prefix: '' }
+```
+
+So, you should only need to use this helper to change those defaults of one or more layers.
 
 **Params:**
 
 ```
-@param options
-@param options.pathPrefix    Optional Boolean to prefix the component name with path, defaults to true
-@param options.prefix        Optional String to prefix the component name with 
+@param     global        Optional Boolean to register the components globally, defaults to false
+@param     prefix        Optional String to prefix component names, defaults to ""
+@param     pathPrefix    Optional Boolean to prefix component names with the full path, defaults to false
 ```
 
 **Example:**
 
 ```ts
 {
-  components: layers.components({ prefix: 'App' })
+  components: layers.components()
 }
 ```
 
@@ -455,62 +530,62 @@ Determines additional component registration. See the [docs](https://nuxt.com/do
 ```js
 {
   components: [
-    { path: '~/core/components', prefix: 'App' },
-    { path: '~/layers/blog/components', prefix: 'App' },
-    { path: '~/layers/site/components', prefix: 'App' },
+    { path: '~/core/components', pathPrefix: false },
+    { path: '~/layers/blog/components', pathPrefix: false },
+    { path: '~/layers/site/components', pathPrefix: false },
   ]
 }
 ```
 
-### `alias()`
 
-> Used with [`config.alias`](https://nuxt.com/docs/api/nuxt-config#alias)
+### `contentSources()`
 
-Generates path aliases for both named layers and arbitrary folders.
+Used with [`content.sources`](https://content.nuxt.com/get-started/configuration#sources)
+
+Generates Nuxt Content sources.
+
+Tips:
+
+- combine with `layers.only()` to target only layers with content folders
+- if you need something more complex, consider [`obj()`](#obj) or [`abs()`](#abs)
 
 **Params:**
 
 ```
- @param prefix      The required alias prefix
- @param folders     An optional set of folder paths, defaults to layers config
+@param prefix     An optional prefixing option; defaults to 'auto'
+                  - 'auto' to prefix all but the first layer
+                  - an object to map layer keys to prefixes
+                  - true to prefix with the layer key, i.e. '/blog'
+                  - false for no prefix
 ```
 
-**Example 1;** generate default layer aliases:
+**Example:**
 
 ```ts
 {
-  alias: layers.alias('#')
-}
-```
-
-**Result:**
-
-```js
-{
-  alias: {
-    '#core': '/Volumes/Projects/some-project/core',
-    '#blog': '/Volumes/Projects/some-project/layers/blog',
-    '#site': '/Volumes/Projects/some-project/layers/site',
+  content: {
+    sources: layers.only('site blog').contentSources()
   }
 }
 ```
 
-**Example 2;** generate custom aliases:
-
-```ts
-{
-  alias: layers.alias('~/', [
-    'foo/components',
-  ])
-}
-```
-
 **Result:**
 
 ```js
 {
-  alias: {
-    '~/foo/components': '/Volumes/Projects/some-project/foo/components',
+  content: {
+    sources: {
+      site: {
+        // note – no prefix for the first picked layer from `only()`
+        base: '/Volumes/Projects/some-project/layers/site/content',
+        driver: 'fs'
+      },
+      blog: {
+        prefix: '/blog',
+        base: '/Volumes/Projects/some-project/layers/blog/content',
+        driver: 'fs'
+      }
+    }
   }
 }
 ```
@@ -566,6 +641,42 @@ const alias = { ... }
 
 ## Utils
 
+### `only()`
+
+Choose only certain layers to get config for.
+
+Note that the hash will be rebuilt in the order of the specified keys.
+
+**Params:**
+
+```
+@param filter       A space-delimited string of layer keys, or an array of layer keys
+```
+
+**Example:**
+
+```ts
+const alias = {
+  ...layers.only('site').alias('~/', [
+    'components',
+    'composables',
+    'utils',
+  ]),
+}
+```
+
+**Result:**
+
+```js
+{
+  alias: {
+    '~/components' : '/Volumes/Projects/some-project/layers/site/components',
+    '~/composables' : '/Volumes/Projects/some-project/layers/site/composables',
+    '~/utils' : '/Volumes/Projects/some-project/layers/site/utils',
+  }
+}
+```
+
 ### `rel()`
 
 Generate the relative path to a layer folder or sub-folder.
@@ -608,40 +719,112 @@ layers.abs('site', 'assets')
 '/Volumes/Projects/some-project/layers/site/assets'
 ```
 
+### `obj()`
 
-### `only()`
+Utility function to return a hash of config options from a user-defined callback.
 
-Choose only certain layers to get config for.
-
-**Params:**
+Note that  `this` is bound to the `useLayers()` instance.
 
 ```
-@param filter       A space-delimited string of layer keys, or an array of layer keys
+@param     callback    Callback function passing key, rel, abs and index values
 ```
 
 **Example:**
 
 ```ts
-const alias = {
-  ...layers.only('site').alias('~/', [
-    'components',
-    'composables',
-    'utils',
-  ]),
+{
+  someConfig: layers.only('site blog').obj((key, rel, abs, index) => {
+    return {
+      key,
+      rel,
+      abs,
+      index,
+    }
+  })
 }
+
 ```
 
 **Result:**
 
 ```js
 {
-  alias: {
-    '~/components' : '/Volumes/Projects/some-project/layers/site/components',
-    '~/composables' : '/Volumes/Projects/some-project/layers/site/composables',
-    '~/utils' : '/Volumes/Projects/some-project/layers/site/utils',
+  site: {
+    key: 'site',
+    rel: 'layers/site/assets',
+    abs: '/Volumes/Projects/some-project/layers/site/assets',
+    index: 0,
+  }
+  blog: {
+    key: 'blog',
+    rel: 'layers/blog/assets',
+    abs: '/Volumes/Projects/some-project/layers/blog/assets',
+    index: 1,
   }
 }
 ```
+
+### `arr()`
+
+Utility function to return an array of config options from a user-defined callback
+
+Note that `this` is bound to the `useLayers()` instance.
+
+```
+@param     callback    Callback function passing key, rel, abs and index values
+```
+
+**Example:**
+
+```ts
+{
+  someConfig: layers.only('site blog').arr((key, rel, abs, index) => {
+    return {
+      key,
+      rel,
+      abs,
+      index,
+    }
+  })
+}
+```
+
+**Result:**
+
+```js
+[
+  {
+    key: 'site',
+    rel: 'layers/site/assets',
+    abs: '/Volumes/Projects/some-project/layers/site/assets',
+    index: 0,
+  }
+  {
+    key: 'blog',
+    rel: 'layers/blog/assets',
+    abs: '/Volumes/Projects/some-project/layers/blog/assets',
+    index: 1,
+  }
+]
+```
+
+### `layers`
+
+Reference to the original layers config
+
+**Example:**
+
+```ts
+useLayers({ blog: 'layers/blog' }).layers
+```
+
+**Result:**
+
+```js
+{ blog: 'layers/blog' }
+```
+
+
 
 ## Helpers
 

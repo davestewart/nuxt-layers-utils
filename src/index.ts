@@ -58,9 +58,19 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
 
   return {
     /**
+     * Get the original layers config
+     * @returns               A hash of key:relative path pairs
+     */
+    get layers () {
+      return layers
+    },
+
+    /**
      * Generate `config.extends` layer folders array
      *
      * @see https://nuxt.com/docs/api/nuxt-config#extends
+     *
+     * @returns               An array of relative paths
      */
     extends () {
       return Object.values(layers)
@@ -73,6 +83,7 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      *
      * @param     key         A valid layer key, i.e. 'core'
      * @param     folders     An array of valid config.dir folder keys
+     * @returns               A hash of key:relative path pairs
      */
     dir (key: keyof typeof layers, folders: NuxtDir[]) {
       assertLayerKey(key)
@@ -89,6 +100,7 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      *
      * @param     key         A valid layer key, i.e. 'core'
      * @param     folder      A valid config.dir folder, i.e. 'assets'
+     * @returns               A relative path
      */
     dirPath (key: keyof typeof layers, folder?: NuxtDir) {
       assertLayerKey(key)
@@ -100,39 +112,68 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      *
      * @see https://nuxt.com/docs/api/nuxt-config#imports
      *
-     * @param     folders   An optional list of folders
+     * @param     folders     An optional list of folders
+     * @returns               An array of relative paths
      */
     importsDirs (folders = AUTO_IMPORTS) {
-      return Object
-        .values(layers)
-        .map((dir: string) => {
-          return folders.map((folder: string) => {
-            return join(dir, folder)
-          })
+      return this.arr((key, rel) => {
+        return folders.map((folder: string) => {
+          return join(rel, folder)
         })
-        .flat()
+      }).flat()
     },
 
     /**
      * Generate `config.components` array
      *
+     * Note that Nuxt registers layer component folders by default, using the following effective config:
+     *
+     * { pathPrefix: true, global: false, prefix: '' }
+     *
+     * So, only use this helper when you want to change the defaults of one or more layers.
+     *
      * @see https://nuxt.com/docs/guide/directory-structure/components#custom-directories
      * @see https://nuxt.com/docs/api/nuxt-config#components
      *
-     * @param     options
-     * @param     options.pathPrefix    Optional Boolean to prefix the component name with path, defaults to true
-     * @param     options.prefix        Optional String to prefix the component name with
+     * @param     global        Optional Boolean to register the components globally, defaults to false
+     * @param     prefix        Optional String to prefix component names, defaults to ""
+     * @param     pathPrefix    Optional Boolean to prefix component names with the full path, defaults to false
+     * @returns                 An array of component config options
      */
-    components (options: { pathPrefix?: boolean, prefix?: string } = {}) {
-      const hasOptions = Object.values(options).length > 0
-      return Object
-        .values(layers)
-        .map((dir: string) => {
-          const path = `~/${dir}/components`
-          return hasOptions
-            ? { path, ...options }
-            : path
-        })
+    components (global = false, prefix?: string, pathPrefix = false) {
+      return this.arr((key, rel) => {
+        const path = `~/${rel}/components`
+        return { path, global, prefix, pathPrefix }
+      })
+    },
+
+    /**
+     * Generate `content.sources` hash
+     *
+     * @see https://content.nuxt.com/get-started/configuration#sources
+     *
+     * Tip: combine with layers.only() to target only layers with content folders
+     *
+     * @param     prefix      An optional prefixing option; defaults to 'auto'
+     *                        - 'auto' to prefix all but the first layer
+     *                        - an object to map layer keys to prefixes
+     *                        - true to prefix with the layer key, i.e. '/blog'
+     *                        - false for no prefix
+     * @returns               A hash of key:source pairs
+     */
+    contentSources (prefix: 'auto' | Record<string, any> | boolean = 'auto') {
+      return this.obj((key, rel, abs, index) => {
+        const prefixed = (prefix === 'auto' && index === 0) || prefix === false
+          ? {}
+          : prefix && typeof prefix === 'object'
+            ? { prefix: `/${prefix[key]}` }
+            : { prefix: `/${key}` }
+        return {
+          ...prefixed,
+          base: join(abs, 'content'),
+          driver: 'fs',
+        }
+      })
     },
 
     /**
@@ -142,7 +183,7 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      *
      * @param     prefix      A required alias prefix
      * @param     folders     An optional
-     * @returns   A hash of { key: path } pairs
+     * @returns               A hash of key:absolute path pairs
      */
     alias (prefix: string = '#', folders?: string[] | true): Layers {
       const output: Record<string, string> = {}
@@ -170,6 +211,7 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      * @see https://nuxt.com/docs/api/nuxt-config#resolve
      *
      * @param     aliases     The same alias hash used in `config.alias`
+     * @returns               An array of find:replace pairs
      */
     viteResolveAlias (aliases: Record<string, string>) {
       return Object
@@ -182,12 +224,30 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
     },
 
     /**
+     * Choose only certain layers to get config for
+     *
+     * @param     filter      A space-delimited string of layer keys, or an array of layer keys
+     * @returns               A new useLayers() instance with only the specified layers
+     */
+    only (filter: string | Array<keyof typeof layers>) {
+      const keys = getKeys(filter)
+      keys.forEach(assertLayerKey)
+      const filtered = keys
+        .reduce((output, key) => {
+          output[key] = layers[key]
+          return output
+        }, {} as Record<keyof typeof layers, string>)
+      return useLayers(baseDir, filtered)
+    },
+
+    /**
      * Get the relative path for a layer, or one of its folders
      *
      * @see https://nuxt.com/docs/api/nuxt-config#dir
      *
      * @param     key         A valid layer key, i.e. 'core'
      * @param     folder      A valid config.dir folder, i.e. 'assets'
+     * @returns               A relative path
      */
     rel (key: keyof typeof layers, folder = '') {
       assertLayerKey(key)
@@ -199,6 +259,7 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
      *
      * @param     key         A valid layer key, i.e. 'core'
      * @param     folder      A valid `config.dir` folder, i.e. 'assets'
+     * @returns               An absolute path
      */
     abs (key: keyof typeof layers, folder = '') {
       assertLayerKey(key)
@@ -206,23 +267,30 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
     },
 
     /**
-     * Choose only certain layers to get config for
+     * Utility function to return a hash of config options from a user-defined callback
      *
-     * Returns a new helper instance with only the chosen layers
-     *
-     * @param     filter                A space-delimited string of layer keys, or an array of layer keys
+     * @param     callback    Callback function passing key, rel, abs and index values
+     * @returns               A hash of key:user-defined options
      */
-    only (filter: string | Array<keyof typeof layers>) {
-      const keys = getKeys(filter)
-      keys.forEach(assertLayerKey)
-      const filtered = Object
-        .keys(layers)
-        .filter(key => keys.includes(key))
-        .reduce((output, key) => {
-          output[key] = layers[key]
-          return output
-        }, {} as Record<keyof typeof layers, string>)
-      return useLayers(baseDir, filtered)
+    obj<T> (callback: (key: keyof typeof layers, rel: string, abs: string, index: number) => T): Record<string, T> {
+      const output: Record<string, T> = {}
+      let index = 0
+      for (const key of Object.keys(layers)) {
+        output[key] = callback(key, layers[key], this.abs(key), index++)
+      }
+      return output
+    },
+
+    /**
+     * Utility function to return an array of config options from a user-defined callback
+     *
+     * @param     callback    Callback function passing key, rel, abs and index values
+     * @returns               An array of user-defined options
+     */
+    arr<T> (callback: (key: keyof typeof layers, rel: string, abs: string, index: number) => T): T[] {
+      return Object.entries(layers).map(([key, rel], index) => {
+        return callback(key, rel, this.abs(key), index)
+      })
     },
   }
 }

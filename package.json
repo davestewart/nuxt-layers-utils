@@ -1,7 +1,7 @@
 {
   "name": "nuxt-layers-utils",
   "description": "A collection of utilities to work with Nuxt layers",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "author": "Dave Stewart",
   "files": [
     "dist/*"

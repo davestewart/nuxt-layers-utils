@@ -57,19 +57,76 @@ describe('api', () => {
     it('should return component paths with defaults', () => {
       const result = layers.components()
       expect(result).toEqual([
-        '~/core/components',
-        '~/layers/blog/components',
-        '~/layers/site/components',
+        { path: '~/core/components', global: false, pathPrefix: false },
+        { path: '~/layers/blog/components', global: false, pathPrefix: false },
+        { path: '~/layers/site/components', global: false, pathPrefix: false },
       ])
     })
 
     it('should handle options for component paths', () => {
-      const result = layers.components({ pathPrefix: false, prefix: 'Custom' })
+      const result = layers.components(false, 'Custom')
       expect(result).toEqual([
-        { path: '~/core/components', pathPrefix: false, prefix: 'Custom' },
-        { path: '~/layers/blog/components', pathPrefix: false, prefix: 'Custom' },
-        { path: '~/layers/site/components', pathPrefix: false, prefix: 'Custom' },
+        { path: '~/core/components', global: false, prefix: 'Custom', pathPrefix: false },
+        { path: '~/layers/blog/components', global: false, prefix: 'Custom', pathPrefix: false },
+        { path: '~/layers/site/components', global: false, prefix: 'Custom', pathPrefix: false },
       ])
+    })
+  })
+
+  describe('contentSources', () => {
+    it('should return a content source', () => {
+      const result = layers.only('site').contentSources()
+      expect(result).toEqual({
+        site: {
+          base: '/projects/project/layers/site/content',
+          driver: 'fs',
+        },
+      })
+    })
+
+    it('should automatically prefix later layers', () => {
+      const result = layers.only('site blog').contentSources()
+      expect(result).toEqual({
+        site: {
+          base: '/projects/project/layers/site/content',
+          driver: 'fs',
+        },
+        blog: {
+          prefix: '/blog',
+          base: '/projects/project/layers/blog/content',
+          driver: 'fs',
+        },
+      })
+    })
+
+    it('should skip prefixing if set to false', () => {
+      const result = layers.only('site blog').contentSources(false)
+      expect(result).toEqual({
+        site: {
+          base: '/projects/project/layers/site/content',
+          driver: 'fs',
+        },
+        blog: {
+          base: '/projects/project/layers/blog/content',
+          driver: 'fs',
+        },
+      })
+    })
+
+    it('should remap prefixes when object passed', () => {
+      const result = layers.only('site blog').contentSources({ site: 'the-site', blog: 'the-blog' })
+      expect(result).toEqual({
+        site: {
+          base: '/projects/project/layers/site/content',
+          prefix: '/the-site',
+          driver: 'fs',
+        },
+        blog: {
+          base: '/projects/project/layers/blog/content',
+          prefix: '/the-blog',
+          driver: 'fs',
+        },
+      })
     })
   })
 
@@ -110,17 +167,28 @@ describe('api', () => {
 })
 
 describe('utilities', () => {
-  describe('abs', () => {
-    it('should return the correct absolute path for a layer', () => {
-      expect(layers.abs('core')).toBe('/projects/project/core')
+  describe('only', () => {
+    it('should filter specified layers when passing a string', () => {
+      const newLayers = layers.only('core')
+      expect(newLayers.extends()).toEqual([
+        'core',
+      ])
     })
 
-    it('should return the correct absolute path for a layer and folder', () => {
-      expect(layers.abs('blog', 'assets')).toBe('/projects/project/layers/blog/assets')
+    it('should filter specified layers when passing an array', () => {
+      const newLayers = layers.only(['core', 'blog'])
+      expect(newLayers.extends()).toEqual([
+        'core',
+        'layers/blog',
+      ])
     })
 
-    it('throws an error for invalid layer keys', () => {
-      expect(() => layers.abs('invalid')).toThrow('Invalid layer "invalid"')
+    it('should order specified layers by the order of keys passed', () => {
+      const newLayers = layers.only('site blog')
+      expect(newLayers.extends()).toStrictEqual([
+        'layers/site',
+        'layers/blog',
+      ])
     })
   })
 
@@ -138,19 +206,38 @@ describe('utilities', () => {
     })
   })
 
-  describe('only', () => {
-    it('should filter specified layers when passing a string', () => {
-      const newLayers = layers.only('core')
-      expect(newLayers.extends()).toEqual([
-        'core',
-      ])
+  describe('abs', () => {
+    it('should return the correct absolute path for a layer', () => {
+      expect(layers.abs('core')).toBe('/projects/project/core')
     })
 
-    it('should filter specified layers when passing an array', () => {
-      const newLayers = layers.only(['core', 'blog'])
-      expect(newLayers.extends()).toEqual([
-        'core',
-        'layers/blog',
+    it('should return the correct absolute path for a layer and folder', () => {
+      expect(layers.abs('blog', 'assets')).toBe('/projects/project/layers/blog/assets')
+    })
+
+    it('throws an error for invalid layer keys', () => {
+      expect(() => layers.abs('invalid')).toThrow('Invalid layer "invalid"')
+    })
+  })
+
+  describe('obj', () => {
+    it('should return a hash of config options', () => {
+      expect(layers.only('core site').obj((key, rel, abs, index) => {
+        return [key, rel, abs, index].join('|')
+      })).toStrictEqual({
+        core: 'core|core|/projects/project/core|0',
+        site: 'site|layers/site|/projects/project/layers/site|1',
+      })
+    })
+  })
+
+  describe('arr', () => {
+    it('should return an array of config options', () => {
+      expect(layers.only('core site').arr((key, rel, abs, index) => {
+        return [key, rel, abs, index].join('|')
+      })).toStrictEqual([
+        'core|core|/projects/project/core|0',
+        'site|layers/site|/projects/project/layers/site|1',
       ])
     })
   })

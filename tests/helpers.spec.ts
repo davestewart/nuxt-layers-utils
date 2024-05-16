@@ -14,6 +14,7 @@ const layers = useLayers(__dirname, {
   account: 'layers/account',
   services: 'layers/services',
   site: 'layers/site',
+  blog: 'layers/blog',
 })
 
 // set up global aliases; note is a mix of layer and non layer code
@@ -60,6 +61,10 @@ describe('helpers', () => {
             'pages',
             'public',
           ]),
+        },
+
+        content: {
+          sources: layers.only('site blog').contentSources()
         },
 
         // add additional layer auto-import folders
