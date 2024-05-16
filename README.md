@@ -1,6 +1,12 @@
+
+
 # Nuxt Layers Utils
 
 > A collection of utilities to work with Nuxt layers
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/davestewart/nuxt-layers-utils/main/splash.png" alt="Nuxt Layers Utils logo">
+</p>
 
 ## Abstract
 
@@ -493,14 +499,22 @@ Determines which folders should be auto-imported by Nuxt.
 
 Used with [`config.components`](https://nuxt.com/docs/api/nuxt-config#components)
 
-Determines additional component registration. See the [docs](https://nuxt.com/docs/guide/directory-structure/components#custom-directories) for more info on the method parameters.
+Override default [component naming](https://nuxt.com/docs/guide/directory-structure/components#custom-directories) and registration, to prevent path-prefixing for components.
+
+Note that Nuxt registers layers' component folders by default, using the default of path-prefixing sub-folder components, with the following effective config:
+
+```
+{ pathPrefix: true, global: false, prefix: '' }
+```
+
+So, you should only need to use this helper to change those defaults of one or more layers.
 
 **Params:**
 
 ```
-@param options
-@param options.pathPrefix    Optional Boolean to prefix the component name with path, defaults to true
-@param options.prefix        Optional String to prefix the component name with
+@param     global        Optional Boolean to register the components globally, defaults to false
+@param     prefix        Optional String to prefix component names, defaults to ""
+@param     pathPrefix    Optional Boolean to prefix component names with the full path, defaults to false
 ```
 
 **Example:**

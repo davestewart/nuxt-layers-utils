@@ -126,21 +126,24 @@ export function useLayers (baseDir = __dirname, layers: Layers) {
     /**
      * Generate `config.components` array
      *
+     * Note that Nuxt registers layer component folders by default, using the following effective config:
+     *
+     * { pathPrefix: true, global: false, prefix: '' }
+     *
+     * So, only use this helper when you want to change the defaults of one or more layers.
+     *
      * @see https://nuxt.com/docs/guide/directory-structure/components#custom-directories
      * @see https://nuxt.com/docs/api/nuxt-config#components
      *
-     * @param     options
-     * @param     options.pathPrefix    Optional Boolean to prefix the component name with path, defaults to true
-     * @param     options.prefix        Optional String to prefix the component name with
-     * @returns                         An array of component config options
+     * @param     global        Optional Boolean to register the components globally, defaults to false
+     * @param     prefix        Optional String to prefix component names, defaults to ""
+     * @param     pathPrefix    Optional Boolean to prefix component names with the full path, defaults to false
+     * @returns                 An array of component config options
      */
-    components (options: { pathPrefix?: boolean, prefix?: string } = {}) {
-      const hasOptions = Object.values(options).length > 0
+    components (global = false, prefix?: string, pathPrefix = false) {
       return this.arr((key, rel) => {
         const path = `~/${rel}/components`
-        return hasOptions
-          ? { path, ...options }
-          : path
+        return { path, global, prefix, pathPrefix }
       })
     },
 

@@ -57,18 +57,18 @@ describe('api', () => {
     it('should return component paths with defaults', () => {
       const result = layers.components()
       expect(result).toEqual([
-        '~/core/components',
-        '~/layers/blog/components',
-        '~/layers/site/components',
+        { path: '~/core/components', global: false, pathPrefix: false },
+        { path: '~/layers/blog/components', global: false, pathPrefix: false },
+        { path: '~/layers/site/components', global: false, pathPrefix: false },
       ])
     })
 
     it('should handle options for component paths', () => {
-      const result = layers.components({ pathPrefix: false, prefix: 'Custom' })
+      const result = layers.components(false, 'Custom')
       expect(result).toEqual([
-        { path: '~/core/components', pathPrefix: false, prefix: 'Custom' },
-        { path: '~/layers/blog/components', pathPrefix: false, prefix: 'Custom' },
-        { path: '~/layers/site/components', pathPrefix: false, prefix: 'Custom' },
+        { path: '~/core/components', global: false, prefix: 'Custom', pathPrefix: false },
+        { path: '~/layers/blog/components', global: false, prefix: 'Custom', pathPrefix: false },
+        { path: '~/layers/site/components', global: false, prefix: 'Custom', pathPrefix: false },
       ])
     })
   })
