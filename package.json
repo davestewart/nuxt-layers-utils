@@ -1,7 +1,7 @@
 {
   "name": "nuxt-layers-utils",
   "description": "A collection of utilities to work with Nuxt layers",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "Dave Stewart",
   "files": [
     "dist/*"
@@ -20,7 +20,7 @@
     "pathe": "^1.1.2"
   },
   "peerDependencies": {
-    "nuxt": "^3.0.0"
+    "nuxt": ">=3.0.0"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.8.0",
